@@ -49,9 +49,9 @@ public class NetworkManager : MonoBehaviour
 
 	void OnJoinedRoom()
 	{
-		GameObject player = PhotonNetwork.Instantiate ("Player", Vector3.up * 5, Quaternion.identity, 0);
+		GameObject player = PhotonNetwork.Instantiate ("Player", new Vector3 (0, 1, 0), Quaternion.identity, 0);
 		player.transform.GetComponent<Player> ().enabled = true;
-		player.transform.GetComponentInChildren<CamRot> ().enabled = true;
+		player.transform.GetComponentInChildren<CameraRotate> ().enabled = true;
 		player.transform.GetComponentInChildren<Camera> ().enabled = true;
 	}
 

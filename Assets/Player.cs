@@ -7,7 +7,7 @@ public abstract class Player : MonoBehaviour {
 
     private int health = 1;
     private int maxHealth = 1;
-    private int speed = 1;
+    private float speed = 1;
     private int defense = 1;
     private int damage = 1;
 
@@ -24,6 +24,11 @@ public abstract class Player : MonoBehaviour {
     Animator anim;
     CapsuleCollider col;
     Rigidbody body;
+    public Transform mesh;
+
+    Quaternion destRot;
+    bool left, right, forward, backward, moving;
+    public Transform cam;
 
     PlayerState currentState = PlayerState.idle;
 
@@ -31,10 +36,21 @@ public abstract class Player : MonoBehaviour {
         col = GetComponent<CapsuleCollider>();
         body = GetComponent<Rigidbody>();
         anim = GetComponent<Animator>();
+        StopMovement();
     }
-    
+
+
+    void FixedUpdate()
+    {
+        if(currentState != PlayerState.dead && (Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0))
+        {
+            transform.Translate(Input.GetAxis("Horizontal") * speed/10, 0, Input.GetAxis("Vertical") * speed/10);
+        }
+    }
+
 	// Update is called once per frame
 	void Update () {
+        
         if (health > maxHealth) health = maxHealth;
 
 
@@ -43,15 +59,47 @@ public abstract class Player : MonoBehaviour {
             //Movement
             if (Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0)
             {
+                moving = true;
                 anim.SetBool("Moving", true);
-                transform.Translate(Input.GetAxis("Horizontal") * speed, 0, Input.GetAxis("Vertical") * speed);
+
+                //Setting rotation states
+                if (Input.GetAxis("Horizontal") < 0) left = true;
+                else left = false;
+                if (Input.GetAxis("Horizontal") > 0) right = true;
+                else right = false;
+                if (Input.GetAxis("Vertical") < 0) backward = true;
+                else backward = false;
+                if (Input.GetAxis("Vertical") > 0) forward = true;
+                else forward = false;
 
             }
-            else
+            else if (moving)
             {
                 anim.SetBool("Moving", false);
+                StopMovement();
+            }
+            
+
+            //Rotations
+            if (left) Rotate(270);
+            if (right) Rotate(90);
+            if (forward) Rotate(0);
+            if (backward) Rotate(180);
+
+            if (left && forward) Rotate(315);
+            if (left && backward) Rotate(225);
+            if (right && forward) Rotate(45);
+            if (right && backward) Rotate(135);
+
+            mesh.rotation = Quaternion.Slerp(mesh.rotation, destRot, .25f);
+            if (Input.GetMouseButton(0))
+            {
+                transform.eulerAngles = new Vector3(transform.eulerAngles.x, cam.eulerAngles.y, transform.eulerAngles.z);
+                destRot = transform.rotation;
             }
 
+
+            //Jump
             if (Input.GetButtonDown("Jump"))
             {
                 Ray ray = new Ray(col.bounds.center, -transform.up);
@@ -59,7 +107,6 @@ public abstract class Player : MonoBehaviour {
                 if (Physics.Raycast(ray, out hit, col.height / 2 + .05f)) {
                     if (!hit.collider.isTrigger)
                     {
-                        Debug.Log("Jump Ready");
                         body.AddForce(0, jumpAmount, 0);
                     }
                 }
@@ -85,6 +132,19 @@ public abstract class Player : MonoBehaviour {
         }
     }
 
+    void StopMovement() {
+        left = false;
+        right = false;
+        forward = false;
+        backward = false;
+    }
+
+
+    void Rotate(int degree)
+    {
+        destRot = transform.rotation;
+        destRot *= Quaternion.Euler(Vector3.up * degree);
+    }
 
     private void TakeDamage(int dmg) {
         if(dmg - defense < 0) health -= dmg - defense;
