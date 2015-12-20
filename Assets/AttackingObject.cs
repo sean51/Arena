@@ -19,10 +19,11 @@ public class AttackingObject : MonoBehaviour {
 	
 	}
 
-    void OnTriggerEnter(Collider c) {
-        if (c.tag == "Enemy") {
-            if (player != null) player.DealDamage(c.transform.GetComponent<Player>());
-            else Debug.LogWarning("AttackObject Player not found");
+    void OnTriggerEnter(Collider c) 
+	{
+        if (c.tag == "Enemy") 
+		{
+			c.transform.GetComponent<Player>().TakeDamage(50);
         }
     }
 }

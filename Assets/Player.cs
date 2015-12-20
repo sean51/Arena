@@ -13,9 +13,9 @@ public abstract class Player : MonoBehaviour {
 
     public float jumpAmount = 1000;
 
-    Transform attackingObject1;
-    Transform attackingObject2;
-    Transform attackingObject3;
+    protected Transform attackingObject1;
+	protected Transform attackingObject2;
+	protected Transform attackingObject3;
 
     GameObject createdObject1;
     GameObject createdObject2;
@@ -24,7 +24,7 @@ public abstract class Player : MonoBehaviour {
     public Animator anim;
     CapsuleCollider col;
     Rigidbody body;
-    public Transform mesh;
+    protected Transform mesh;
 
     Quaternion destRot;
     bool left, right, forward, backward, moving;
@@ -36,15 +36,19 @@ public abstract class Player : MonoBehaviour {
 	private PhotonView PV;
 	Vector3 realPosition = Vector3.zero;
 	Quaternion realRotation = Quaternion.identity;
-	bool other_moving = false;
 
-    void Start() 
+	Vector3 spawn_position = new Vector3(-20, 20, 20);
+	float death_timer = 5.0f;
+	float active_timer = 0.0f;
+
+    protected virtual void Start() 
 	{
 		PV = GetComponent<PhotonView> ();
         col = GetComponent<CapsuleCollider>();
         body = GetComponent<Rigidbody>();
         anim = GetComponent<Animator>();
 		anim.SetBool ("Moving", false);
+		mesh = GetComponentInChildren<Renderer> ().transform;
         StopMovement();
     }
 
@@ -69,10 +73,6 @@ public abstract class Player : MonoBehaviour {
         
 		if (PV.isMine) 
 		{
-			if (health > maxHealth)
-				health = maxHealth;
-
-
 			if (currentState != PlayerState.dead) {
 				//Movement
 				if (Input.GetAxis ("Horizontal") != 0 || Input.GetAxis ("Vertical") != 0) {
@@ -123,7 +123,7 @@ public abstract class Player : MonoBehaviour {
 					Rotate (135);
 
 				mesh.rotation = Quaternion.Slerp (mesh.rotation, destRot, .25f);
-				if (Input.GetMouseButton (0)) {
+				if (moving) {
 					transform.eulerAngles = new Vector3 (transform.eulerAngles.x, cam.eulerAngles.y, transform.eulerAngles.z);
 					destRot = transform.rotation;
 				}
@@ -154,6 +154,16 @@ public abstract class Player : MonoBehaviour {
 					currentState = PlayerState.attacking;
 					Ability3 ();
 				}
+			} 
+			else 
+			{
+				active_timer += Time.deltaTime;
+				if (active_timer >= death_timer) 
+				{
+					active_timer = 0.0f;
+					transform.position = spawn_position;
+					currentState = PlayerState.idle;
+				}
 			}
 		}
     }
@@ -172,17 +182,17 @@ public abstract class Player : MonoBehaviour {
         destRot *= Quaternion.Euler(Vector3.up * degree);
     }
 
-    private void TakeDamage(int dmg) {
-        if(dmg - defense < 0) health -= dmg - defense;
+    public void TakeDamage(int dmg) {
+        if(dmg - defense > 0) health -= dmg - defense;
         if (health <= 0) Death();
+		Debug.Log ("Ouch");
     }
 
-    public void DealDamage(Player p) {
-        p.TakeDamage(damage);
-    }
-
-    private void Death() {
+    private void Death() 
+	{
         currentState = PlayerState.dead;
+		//col.enabled = false;
+
     }
 
     protected abstract void Ability1();
@@ -191,21 +201,28 @@ public abstract class Player : MonoBehaviour {
 
     protected abstract void Ability3();
 
-	public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+	protected Transform Get_Child(string child_name)
 	{
-		if (stream.isWriting) 
+		return Get_Child (transform, child_name);
+	}
+
+	protected Transform Get_Child(Transform child_transform, string child_name)
+	{
+		if (child_transform.name == child_name) 
 		{
-			//stream.SendNext (anim.GetFloat ("Moving"));
-			//stream.SendNext (transform.position);
-			stream.SendNext (mesh.rotation);
-			stream.SendNext (anim.GetBool ("Moving"));
+			return child_transform;
 		} 
 		else 
 		{
-			//anim.SetFloat ("Moving", (float)stream.ReceiveNext ());
-			//realPosition = (Vector3)stream.ReceiveNext();
-			realRotation = (Quaternion)stream.ReceiveNext ();
-			anim.SetBool ("Moving", (bool)stream.ReceiveNext ());
-		}	
+			foreach (Transform child in child_transform) 
+			{
+				Transform returned_child = Get_Child (child, child_name);
+				if (returned_child != null) 
+				{
+					return returned_child;
+				}
+			}
+		}
+		return null;
 	}
 }
