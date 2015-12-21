@@ -169,6 +169,7 @@ public abstract class Player : MonoBehaviour {
     }
 
     void StopMovement() {
+		moving = false;
         left = false;
         right = false;
         forward = false;

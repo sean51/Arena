@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Projectile : MonoBehaviour 
+public class Projectile : Photon.MonoBehaviour 
 {
 	float time_to_destruction = 5.0f;
 	float speed = 10.0f;
@@ -20,7 +20,10 @@ public class Projectile : MonoBehaviour
 		time_to_destruction -= Time.deltaTime;
 		if (time_to_destruction <= 0.0f)
 		{
-			PhotonNetwork.Destroy (gameObject);
+			if (PhotonNetwork.isMasterClient) 
+			{
+				PhotonNetwork.Destroy (gameObject);
+			}
 		}
 	}
 }
