@@ -2,16 +2,24 @@
 using System;
 using System.Collections;
 
+using UnityEditor;
+
 public class NetworkManager : MonoBehaviour 
 {
 	private const string roomName = "RoomName";
 	private RoomInfo[] roomsList;
 
+    [Header("Testing")]
+    [Tooltip("This is for testing only. Place the character you want to test in here.")]
+    public string character_To_Play_As;
+
 	void Start()
 	{
-		//PhotonNetwork.sendRate = 500;
-		//PhotonNetwork.sendRateOnSerialize = 500;
-		PhotonNetwork.ConnectUsingSettings ("0.1");
+        if (character_To_Play_As == "")
+            character_To_Play_As = "Player";
+        //PhotonNetwork.sendRate = 500;
+        //PhotonNetwork.sendRateOnSerialize = 500;
+        PhotonNetwork.ConnectUsingSettings ("0.1");
 	}
 
 	void OnGUI()
@@ -55,7 +63,7 @@ public class NetworkManager : MonoBehaviour
 
 	void OnJoinedRoom()
 	{
-		GameObject player = PhotonNetwork.Instantiate ("Player", new Vector3 (0, 1, 0), Quaternion.identity, 0);
+		GameObject player = PhotonNetwork.Instantiate (character_To_Play_As, new Vector3 (0, 1, 0), Quaternion.identity, 0);
 		//player.transform.GetComponent<Player> ().enabled = true;
 		player.transform.GetComponentInChildren<CameraRotate> ().enabled = true;
 		player.transform.GetComponentInChildren<Camera> ().enabled = true;

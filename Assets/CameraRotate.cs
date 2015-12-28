@@ -3,7 +3,7 @@ using System.Collections;
 
 [AddComponentMenu("Camera-Control/Mouse Orbit with zoom")]
 public class CameraRotate : MonoBehaviour {
-    bool selectionMode = false;
+    public bool selectionMode = false;
     public Transform target;
 	public float distance = 25.0f;
 	public float xSpeed = 12.0f;

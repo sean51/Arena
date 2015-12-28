@@ -20,7 +20,7 @@ public class Projectile : Photon.MonoBehaviour
 		time_to_destruction -= Time.deltaTime;
 		if (time_to_destruction <= 0.0f)
 		{
-			if (PhotonNetwork.isMasterClient) 
+			if (photonView.isMine) 
 			{
 				PhotonNetwork.Destroy (gameObject);
 			}

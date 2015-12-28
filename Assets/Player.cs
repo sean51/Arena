@@ -74,70 +74,12 @@ public abstract class Player : MonoBehaviour {
 		if (PV.isMine) 
 		{
 			if (currentState != PlayerState.dead) {
-				//Movement
-				if (Input.GetAxis ("Horizontal") != 0 || Input.GetAxis ("Vertical") != 0) {
-					moving = true;
-					anim.SetBool ("Moving", true);
 
-					//Setting rotation states
-					if (Input.GetAxis ("Horizontal") < 0)
-						left = true;
-					else
-						left = false;
-					if (Input.GetAxis ("Horizontal") > 0)
-						right = true;
-					else
-						right = false;
-					if (Input.GetAxis ("Vertical") < 0)
-						backward = true;
-					else
-						backward = false;
-					if (Input.GetAxis ("Vertical") > 0)
-						forward = true;
-					else
-						forward = false;
-
-				} else if (moving) {
-					anim.SetBool ("Moving", false);
-					StopMovement ();
-				}
-            
-
-				//Rotations
-				if (left)
-					Rotate (270);
-				if (right)
-					Rotate (90);
-				if (forward)
-					Rotate (0);
-				if (backward)
-					Rotate (180);
-
-				if (left && forward)
-					Rotate (315);
-				if (left && backward)
-					Rotate (225);
-				if (right && forward)
-					Rotate (45);
-				if (right && backward)
-					Rotate (135);
-
-				mesh.rotation = Quaternion.Slerp (mesh.rotation, destRot, .25f);
-				if (moving) {
-					transform.eulerAngles = new Vector3 (transform.eulerAngles.x, cam.eulerAngles.y, transform.eulerAngles.z);
-					destRot = transform.rotation;
-				}
-
-
-				//Jump
-				if (Input.GetButtonDown ("Jump")) {
-					Ray ray = new Ray (col.bounds.center, -transform.up);
-					RaycastHit hit;
-					if (Physics.Raycast (ray, out hit, col.height / 2 + .05f)) {
-						if (!hit.collider.isTrigger) {
-							body.AddForce (0, jumpAmount, 0);
-						}
-					}
+                Move();
+                
+                //Jump
+                if (Input.GetButtonDown ("Jump")) {
+                    Jump();
 				}
 
 
@@ -168,12 +110,91 @@ public abstract class Player : MonoBehaviour {
 		}
     }
 
+
+    void Move() {
+        //Movement
+        if (Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0)
+        {
+            moving = true;
+            anim.SetBool("Moving", true);
+
+            //Setting rotation states
+            if (Input.GetAxis("Horizontal") < 0)
+                left = true;
+            else
+                left = false;
+            if (Input.GetAxis("Horizontal") > 0)
+                right = true;
+            else
+                right = false;
+            if (Input.GetAxis("Vertical") < 0)
+                backward = true;
+            else
+                backward = false;
+            if (Input.GetAxis("Vertical") > 0)
+                forward = true;
+            else
+                forward = false;
+
+        }
+        else if (moving)
+        {
+            anim.SetBool("Moving", false);
+            StopMovement();
+        }
+
+
+        //Rotations
+        if (left)
+            Rotate(270);
+        if (right)
+            Rotate(90);
+        if (forward)
+            Rotate(0);
+        if (backward)
+            Rotate(180);
+
+        if (left && forward)
+            Rotate(315);
+        if (left && backward)
+            Rotate(225);
+        if (right && forward)
+            Rotate(45);
+        if (right && backward)
+            Rotate(135);
+
+
+        mesh.rotation = Quaternion.Slerp(mesh.rotation, destRot, .25f);
+
+        if (moving &! cam.GetComponent<CameraRotate>().selectionMode)
+        {
+            transform.eulerAngles = new Vector3(transform.eulerAngles.x, cam.eulerAngles.y, transform.eulerAngles.z);
+            //destRot = Quaternion.Euler(new Vector3(transform.eulerAngles.x, cam.eulerAngles.y, transform.eulerAngles.z));
+            destRot = transform.rotation;
+        }
+    }
+
     void StopMovement() {
 		moving = false;
         left = false;
         right = false;
         forward = false;
         backward = false;
+    }
+
+
+    void Jump()
+    {
+        Ray ray = new Ray(col.bounds.center, -transform.up);
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit, col.height / 2 + .05f))
+        {
+            if (!hit.collider.isTrigger)
+            {
+                anim.SetTrigger("Jump");
+                body.AddForce(0, jumpAmount, 0);
+            }
+        }
     }
 
 
