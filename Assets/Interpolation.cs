@@ -39,13 +39,22 @@ public class Interpolation : MonoBehaviour
 			stream.SendNext(transform.position);
 			stream.SendNext (mesh.rotation);
 			stream.SendNext (anim.GetBool ("Moving"));
-		}
+            stream.SendNext(anim.GetBool("Jump"));
+            stream.SendNext(anim.GetBool("Ability1"));
+            stream.SendNext(anim.GetBool("Ability2"));
+            stream.SendNext(anim.GetBool("Ability3"));
+
+        }
 		else
 		{
 			correctPlayerPos = (Vector3)stream.ReceiveNext();
 			realRotation = (Quaternion)stream.ReceiveNext ();
 			anim.SetBool ("Moving", (bool)stream.ReceiveNext ());
-		}
+            anim.SetBool("Jump", (bool)stream.ReceiveNext());
+            anim.SetBool("Ability1", (bool)stream.ReceiveNext());
+            anim.SetBool("Ability2", (bool)stream.ReceiveNext());
+            anim.SetBool("Ability3", (bool)stream.ReceiveNext());
+        }
 	}
 
 	private void SyncedMovement()

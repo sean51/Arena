@@ -2,8 +2,6 @@
 using System;
 using System.Collections;
 
-using UnityEditor;
-
 public class NetworkManager : MonoBehaviour 
 {
 	private const string roomName = "RoomName";
@@ -64,6 +62,8 @@ public class NetworkManager : MonoBehaviour
 	void OnJoinedRoom()
 	{
 		GameObject player = PhotonNetwork.Instantiate (character_To_Play_As, new Vector3 (0, 1, 0), Quaternion.identity, 0);
+        player.tag = "Player";
+        
 		//player.transform.GetComponent<Player> ().enabled = true;
 		player.transform.GetComponentInChildren<CameraRotate> ().enabled = true;
 		player.transform.GetComponentInChildren<Camera> ().enabled = true;

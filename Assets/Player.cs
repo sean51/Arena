@@ -3,7 +3,7 @@ using System.Collections;
 
 public enum PlayerState { run, idle, attacking, dead, takeDamage }
 
-public abstract class Player : MonoBehaviour {
+public abstract class Player : Photon.MonoBehaviour {
 
     private int health = 1;
     private int maxHealth = 1;
@@ -12,6 +12,7 @@ public abstract class Player : MonoBehaviour {
     private int damage = 1;
 
     public float jumpAmount = 1000;
+    private bool justJumped = false;
 
     protected Transform attackingObject1;
 	protected Transform attackingObject2;
@@ -27,7 +28,7 @@ public abstract class Player : MonoBehaviour {
     protected Transform mesh;
 
     Quaternion destRot;
-    bool left, right, forward, backward, moving;
+    bool left, right, forward, backward, moving, grounded;
     public Transform cam;
 
     PlayerState currentState = PlayerState.idle;
@@ -69,7 +70,7 @@ public abstract class Player : MonoBehaviour {
     }
 
 	// Update is called once per frame
-	void Update () {
+	protected virtual void Update () {
         
 		if (PV.isMine) 
 		{
@@ -84,15 +85,15 @@ public abstract class Player : MonoBehaviour {
 
 
 				//Attack
-				if (Input.GetButtonDown ("Ability1")) {
+				if (Input.GetButtonDown ("Ability1") &! AbilityInProgress()) {
 					currentState = PlayerState.attacking;
 					Ability1 ();
 				}
-				if (Input.GetButtonDown ("Ability2")) {
+				if (Input.GetButtonDown ("Ability2") & !AbilityInProgress()) {
 					currentState = PlayerState.attacking;
 					Ability2 ();
 				}
-				if (Input.GetButtonDown ("Ability3")) {
+				if (Input.GetButtonDown ("Ability3") & !AbilityInProgress()) {
 					currentState = PlayerState.attacking;
 					Ability3 ();
 				}
@@ -108,6 +109,11 @@ public abstract class Player : MonoBehaviour {
 				}
 			}
 		}
+    }
+
+
+    bool AbilityInProgress() {
+        return anim.GetCurrentAnimatorStateInfo(1).IsName("Ability1") || anim.GetCurrentAnimatorStateInfo(1).IsName("Ability2") || anim.GetCurrentAnimatorStateInfo(1).IsName("Ability3");
     }
 
 
@@ -144,8 +150,21 @@ public abstract class Player : MonoBehaviour {
         }
 
 
-        //Rotations
-        if (left)
+        //Check to see if we are on the ground
+        Ray ray = new Ray(col.bounds.center, -transform.up);
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit, col.height / 2 + .05f))
+        {
+            //Hitting ground, didn't just jump, and we are currently jumping
+            if (!hit.collider.isTrigger & !justJumped && anim.GetBool("Jump"))
+            {
+                anim.SetBool("Jump", false);
+            }
+        }
+
+
+                //Rotations
+                if (left)
             Rotate(270);
         if (right)
             Rotate(90);
@@ -191,7 +210,8 @@ public abstract class Player : MonoBehaviour {
         {
             if (!hit.collider.isTrigger)
             {
-                anim.SetTrigger("Jump");
+                anim.SetBool("Jump", true);
+                StartCoroutine(JustJumpedTimer());
                 body.AddForce(0, jumpAmount, 0);
             }
         }
@@ -215,6 +235,13 @@ public abstract class Player : MonoBehaviour {
         currentState = PlayerState.dead;
 		//col.enabled = false;
 
+    }
+
+    IEnumerator JustJumpedTimer()
+    {
+        justJumped = true;
+        yield return new WaitForSeconds(.5f);
+        justJumped = false;
     }
 
     protected abstract void Ability1();

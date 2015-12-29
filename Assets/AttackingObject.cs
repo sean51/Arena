@@ -21,9 +21,16 @@ public class AttackingObject : MonoBehaviour {
 
     void OnTriggerEnter(Collider c) 
 	{
-        if (c.tag == "Enemy") 
+        if (c.tag == "Enemy" && c.transform != player.transform) 
 		{
 			c.transform.GetComponent<Player>().TakeDamage(50);
+        }
+        else if(c.tag == "Baby_Chomp")
+        {
+            if (PhotonNetwork.isMasterClient)
+            {
+                PhotonNetwork.Destroy(c.gameObject);
+            }
         }
     }
 }
