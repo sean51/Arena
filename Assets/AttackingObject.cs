@@ -29,7 +29,7 @@ public class AttackingObject : MonoBehaviour {
         {
             if (PhotonNetwork.isMasterClient)
             {
-                PhotonNetwork.Destroy(c.gameObject);
+                c.transform.GetComponent<Chomp>().Kill();
             }
         }
     }
