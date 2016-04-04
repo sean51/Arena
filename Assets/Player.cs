@@ -58,7 +58,7 @@ public abstract class Player : Photon.MonoBehaviour {
     {
 		if (PV.isMine) {
 			if (currentState != PlayerState.dead && (Input.GetAxis ("Horizontal") != 0 || Input.GetAxis ("Vertical") != 0)) {
-				transform.Translate (Input.GetAxis ("Horizontal") * speed / 10, 0, Input.GetAxis ("Vertical") * speed / 10);
+				transform.Translate (Input.GetAxisRaw ("Horizontal") * speed / 10, 0, Input.GetAxisRaw ("Vertical") * speed / 10);
 			}
 		} 
 		else 
